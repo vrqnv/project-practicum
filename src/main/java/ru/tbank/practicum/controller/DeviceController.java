@@ -22,22 +22,23 @@ public class DeviceController {
     }
 
     @PutMapping("/battery/temperature")
-    public String setBatteryTemperature(@RequestParam int value) {
-        batteryService.setTemperature(value);
-        return "Температура батареи установлена на " + value + "°C";
+    public String setBatteryTemperature(@RequestParam Long roomId, @RequestParam int value) {
+        batteryService.setTemperature(roomId, value);
+        return "Температура батареи в комнате " + roomId + " установлена на " + value + "°C";
     }
 
     @PutMapping("/blinds")
-    public String setBlindsState(@RequestParam String state) {
-        blindsService.setState(state);
-        return "Жалюзи " + (state.equals("open") ? "открыты" : "закрыты");
+    public String setBlindsState(@RequestParam Long roomId, @RequestParam String state) {
+        blindsService.setState(roomId, state);
+        return "Жалюзи в комнате " + roomId + " " + (state.equals("open") ? "открыты" : "закрыты");
     }
 
     @PostMapping("/curtains/schedule")
     public String setCurtainSchedule(
+            @RequestParam Long roomId,
             @RequestParam String time,
             @RequestParam String action) {
-        curtainService.setSchedule(time, action);
-        return "Расписание установлено: в " + time + " " + action + " шторы";
+        curtainService.setSchedule(roomId, time, action);
+        return "Расписание для комнаты " + roomId + " установлено: в " + time + " " + action + " шторы";
     }
 }

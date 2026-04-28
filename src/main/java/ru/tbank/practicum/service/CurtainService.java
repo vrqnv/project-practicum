@@ -1,28 +1,44 @@
 package ru.tbank.practicum.service;
 
+import ru.tbank.practicum.entity.CurtainScheduleEntity;
+import ru.tbank.practicum.repository.CurtainScheduleRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class CurtainService {
 
     private static final Logger log = LoggerFactory.getLogger(CurtainService.class);
+    private final CurtainScheduleRepository curtainScheduleRepository;
 
-    private String scheduleTime = null;
-    private String scheduleAction = null;
-
-    public void setSchedule(String time, String action) {
-        this.scheduleTime = time;
-        this.scheduleAction = action;
-        log.info("Шторы: расписание установлено на {} - {}", time, action);
+    public CurtainService(CurtainScheduleRepository curtainScheduleRepository) {
+        this.curtainScheduleRepository = curtainScheduleRepository;
     }
 
-    public String getScheduleTime() {
-        return scheduleTime;
+    @Transactional
+    public void setSchedule(Long roomId, String time, String action) {
+        CurtainScheduleEntity schedule = curtainScheduleRepository.findByRoomId(roomId)
+                .orElse(new CurtainScheduleEntity());
+        schedule.setRoomId(roomId);
+        schedule.setScheduleTime(time);
+        schedule.setScheduleAction(action);
+        curtainScheduleRepository.save(schedule);
+        log.info("Шторы в комнате {}: расписание установлено на {} - {}", roomId, time, action);
     }
 
-    public String getScheduleAction() {
-        return scheduleAction;
+    @Transactional(readOnly = true)
+    public String getScheduleTime(Long roomId) {
+        return curtainScheduleRepository.findByRoomId(roomId)
+                .map(CurtainScheduleEntity::getScheduleTime)
+                .orElse(null);
+    }
+
+    @Transactional(readOnly = true)
+    public String getScheduleAction(Long roomId) {
+        return curtainScheduleRepository.findByRoomId(roomId)
+                .map(CurtainScheduleEntity::getScheduleAction)
+                .orElse(null);
     }
 }
