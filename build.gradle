@@ -3,6 +3,7 @@ plugins {
     id 'org.springframework.boot' version '3.4.4'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'com.diffplug.spotless' version '6.25.0'
+    id 'jacoco'
 }
 
 group = 'ru.tbank.practicum'
@@ -38,4 +39,29 @@ spotless {
     java {
         palantirJavaFormat().formatJavadoc(true)
     }
+}
+
+jacoco {
+    toolVersion = "0.8.12"
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        html.required = true
+        xml.required = false
+        csv.required = false
+    }
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                    "**/dto/**"
+            ])
+        }))
+    }
+}
+
+test {
+    useJUnitPlatform()
+    finalizedBy jacocoTestReport
 }
