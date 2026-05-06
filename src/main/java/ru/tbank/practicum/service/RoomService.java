@@ -2,6 +2,7 @@ package ru.tbank.practicum.service;
 
 import ru.tbank.practicum.entity.RoomEntity;
 import ru.tbank.practicum.kafka.EventProducer;
+import ru.tbank.practicum.metrics.MetricsService;
 import ru.tbank.practicum.repository.RoomRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,11 +17,14 @@ public class RoomService {
     private static final Logger log = LoggerFactory.getLogger(RoomService.class);
     private final RoomRepository roomRepository;
     private final EventProducer eventProducer;
+    private final MetricsService metricsService;
 
     public RoomService(RoomRepository roomRepository,
-                       EventProducer eventProducer) {
+                       EventProducer eventProducer,
+                       MetricsService metricsService) {
         this.roomRepository = roomRepository;
         this.eventProducer = eventProducer;
+        this.metricsService = metricsService;
     }
 
     @Transactional
@@ -33,6 +37,7 @@ public class RoomService {
         String event = String.format("{\"eventType\":\"ROOM_CREATED\",\"roomId\":%d,\"roomName\":\"%s\"}",
                 savedRoom.getId(), savedRoom.getName());
         eventProducer.send("room-events", event);
+        metricsService.incrementRoomsCreated();
 
         return savedRoom;
     }

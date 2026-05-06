@@ -1,0 +1,31 @@
+app:
+  name: project-practicum
+  replicaCount: 2
+  image:
+    repository: project-practicum-app
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: NodePort
+    port: 8080
+    nodePort: 30080
+
+  config:
+    datasourceUrl: jdbc:postgresql://postgres:5432/device_db
+    datasourceUsername: postgres
+    kafkaBootstrapServers: kafka:9092
+    weatherApiKey: change-me
+
+  secret:
+    datasourcePassword: postgres
+
+postgres:
+  image: postgres:16
+  database: device_db
+  username: postgres
+  password: postgres
+  servicePort: 5432
+
+kafka:
+  image: bitnami/kafka:3.8
+  servicePort: 9092
