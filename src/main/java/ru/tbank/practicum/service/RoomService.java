@@ -1,10 +1,7 @@
 package ru.tbank.practicum.service;
 
-import ru.tbank.practicum.entity.BatteryEntity;
-import ru.tbank.practicum.entity.BlindsEntity;
 import ru.tbank.practicum.entity.RoomEntity;
-import ru.tbank.practicum.repository.BatteryRepository;
-import ru.tbank.practicum.repository.BlindsRepository;
+import ru.tbank.practicum.kafka.EventProducer;
 import ru.tbank.practicum.repository.RoomRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,15 +15,12 @@ public class RoomService {
 
     private static final Logger log = LoggerFactory.getLogger(RoomService.class);
     private final RoomRepository roomRepository;
-    private final BatteryRepository batteryRepository;
-    private final BlindsRepository blindsRepository;
+    private final EventProducer eventProducer;
 
     public RoomService(RoomRepository roomRepository,
-                       BatteryRepository batteryRepository,
-                       BlindsRepository blindsRepository) {
+                       EventProducer eventProducer) {
         this.roomRepository = roomRepository;
-        this.batteryRepository = batteryRepository;
-        this.blindsRepository = blindsRepository;
+        this.eventProducer = eventProducer;
     }
 
     @Transactional
@@ -36,17 +30,9 @@ public class RoomService {
         RoomEntity savedRoom = roomRepository.save(room);
         log.info("Создана комната: {} (id={})", name, savedRoom.getId());
 
-        BatteryEntity battery = new BatteryEntity();
-        battery.setRoomId(savedRoom.getId());
-        battery.setTemperature(22);
-        batteryRepository.save(battery);
-        log.info("Создана батарея для комнаты {} с температурой 22C", savedRoom.getId());
-
-        BlindsEntity blinds = new BlindsEntity();
-        blinds.setRoomId(savedRoom.getId());
-        blinds.setState("closed");
-        blindsRepository.save(blinds);
-        log.info("Созданы жалюзи для комнаты {} в положении closed", savedRoom.getId());
+        String event = String.format("{\"eventType\":\"ROOM_CREATED\",\"roomId\":%d,\"roomName\":\"%s\"}",
+                savedRoom.getId(), savedRoom.getName());
+        eventProducer.send("room-events", event);
 
         return savedRoom;
     }

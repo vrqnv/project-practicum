@@ -16,10 +16,8 @@ public class BatteryEntity {
     @Column(name = "temperature", nullable = false)
     private Integer temperature;
 
-    // Конструктор по умолчанию (нужен JPA)
     public BatteryEntity() {}
 
-    // Конструктор со всеми полями
     public BatteryEntity(Long id, Long roomId, Integer temperature) {
         this.id = id;
         this.roomId = roomId;

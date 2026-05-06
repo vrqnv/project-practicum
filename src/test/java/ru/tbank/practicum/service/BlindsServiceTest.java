@@ -11,8 +11,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static ru.tbank.practicum.util.AppConstants.DEFAULT_BLINDS_STATE;
+import static ru.tbank.practicum.util.BlindsState.CLOSED;
+import static ru.tbank.practicum.util.BlindsState.OPEN;
+import static ru.tbank.practicum.util.TestData.blindsWithRoomId;
 
 @ExtendWith(MockitoExtension.class)
 class BlindsServiceTest {
@@ -26,10 +29,9 @@ class BlindsServiceTest {
     @Test
     void setState_whenBlindsExists_shouldUpdateState() {
         Long roomId = 1L;
-        String newState = "open";
-        BlindsEntity existingBlinds = new BlindsEntity();
-        existingBlinds.setRoomId(roomId);
-        existingBlinds.setState("closed");
+        String newState = OPEN.getValue();
+        BlindsEntity existingBlinds = blindsWithRoomId(roomId);
+        existingBlinds.setState(CLOSED.getValue());
 
         when(blindsRepository.findByRoomId(roomId)).thenReturn(Optional.of(existingBlinds));
 
@@ -40,29 +42,29 @@ class BlindsServiceTest {
     }
 
     @Test
-    void setState_whenBlindsNotExists_shouldCreateNew() {
+    void setState_whenBlindsNotExists_shouldThrowException() {
         Long roomId = 2L;
-        String newState = "closed";
+        String newState = CLOSED.getValue();
 
         when(blindsRepository.findByRoomId(roomId)).thenReturn(Optional.empty());
 
-        blindsService.setState(roomId, newState);
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> blindsService.setState(roomId, newState));
 
-        verify(blindsRepository, times(1)).save(any(BlindsEntity.class));
+        assertEquals("Жалюзи не найдены в комнате " + roomId, exception.getMessage());
+        verify(blindsRepository, never()).save(any());
     }
 
     @Test
     void getState_whenBlindsExists_shouldReturnState() {
         Long roomId = 1L;
-        BlindsEntity blinds = new BlindsEntity();
-        blinds.setRoomId(roomId);
-        blinds.setState("open");
+        BlindsEntity blinds = blindsWithRoomId(roomId);
 
         when(blindsRepository.findByRoomId(roomId)).thenReturn(Optional.of(blinds));
 
         String result = blindsService.getState(roomId);
 
-        assertEquals("open", result);
+        assertEquals(DEFAULT_BLINDS_STATE, result);
     }
 
     @Test
@@ -72,6 +74,6 @@ class BlindsServiceTest {
 
         String result = blindsService.getState(roomId);
 
-        assertEquals("closed", result);
+        assertEquals(DEFAULT_BLINDS_STATE, result);
     }
 }

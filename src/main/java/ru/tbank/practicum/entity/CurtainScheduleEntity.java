@@ -1,6 +1,7 @@
 package ru.tbank.practicum.entity;
 
 import jakarta.persistence.*;
+import java.time.LocalTime;
 
 @Entity
 @Table(name = "curtain_schedule")
@@ -13,15 +14,15 @@ public class CurtainScheduleEntity {
     @Column(name = "room_id", nullable = false)
     private Long roomId;
 
-    @Column(name = "schedule_time", nullable = false, length = 10)
-    private String scheduleTime;
+    @Column(name = "schedule_time", nullable = false)
+    private LocalTime scheduleTime;
 
     @Column(name = "schedule_action", nullable = false, length = 10)
     private String scheduleAction;
 
     public CurtainScheduleEntity() {}
 
-    public CurtainScheduleEntity(Long id, Long roomId, String scheduleTime, String scheduleAction) {
+    public CurtainScheduleEntity(Long id, Long roomId, LocalTime scheduleTime, String scheduleAction) {
         this.id = id;
         this.roomId = roomId;
         this.scheduleTime = scheduleTime;
@@ -44,11 +45,11 @@ public class CurtainScheduleEntity {
         this.roomId = roomId;
     }
 
-    public String getScheduleTime() {
+    public LocalTime getScheduleTime() {
         return scheduleTime;
     }
 
-    public void setScheduleTime(String scheduleTime) {
+    public void setScheduleTime(LocalTime scheduleTime) {
         this.scheduleTime = scheduleTime;
     }
 

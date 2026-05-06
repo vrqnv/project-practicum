@@ -8,11 +8,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalTime;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static ru.tbank.practicum.util.TestData.curtainScheduleWithRoomId;
 
 @ExtendWith(MockitoExtension.class)
 class CurtainServiceTest {
@@ -28,16 +30,13 @@ class CurtainServiceTest {
         Long roomId = 1L;
         String time = "10:00";
         String action = "close";
-        CurtainScheduleEntity existingSchedule = new CurtainScheduleEntity();
-        existingSchedule.setRoomId(roomId);
-        existingSchedule.setScheduleTime("08:00");
-        existingSchedule.setScheduleAction("open");
+        CurtainScheduleEntity existingSchedule = curtainScheduleWithRoomId(roomId, "08:00", "open");
 
         when(curtainScheduleRepository.findByRoomId(roomId)).thenReturn(Optional.of(existingSchedule));
 
         curtainService.setSchedule(roomId, time, action);
 
-        assertEquals(time, existingSchedule.getScheduleTime());
+        assertEquals(LocalTime.parse(time), existingSchedule.getScheduleTime());
         assertEquals(action, existingSchedule.getScheduleAction());
         verify(curtainScheduleRepository, times(1)).save(existingSchedule);
     }
@@ -58,16 +57,14 @@ class CurtainServiceTest {
     @Test
     void getScheduleTime_whenScheduleExists_shouldReturnTime() {
         Long roomId = 1L;
-        CurtainScheduleEntity schedule = new CurtainScheduleEntity();
-        schedule.setRoomId(roomId);
-        schedule.setScheduleTime("08:00");
-        schedule.setScheduleAction("open");
+        String time = "08:00";
+        CurtainScheduleEntity schedule = curtainScheduleWithRoomId(roomId, time, "open");
 
         when(curtainScheduleRepository.findByRoomId(roomId)).thenReturn(Optional.of(schedule));
 
         String result = curtainService.getScheduleTime(roomId);
 
-        assertEquals("08:00", result);
+        assertEquals(time, result);
     }
 
     @Test
@@ -83,16 +80,14 @@ class CurtainServiceTest {
     @Test
     void getScheduleAction_whenScheduleExists_shouldReturnAction() {
         Long roomId = 1L;
-        CurtainScheduleEntity schedule = new CurtainScheduleEntity();
-        schedule.setRoomId(roomId);
-        schedule.setScheduleTime("08:00");
-        schedule.setScheduleAction("open");
+        String action = "open";
+        CurtainScheduleEntity schedule = curtainScheduleWithRoomId(roomId, "08:00", action);
 
         when(curtainScheduleRepository.findByRoomId(roomId)).thenReturn(Optional.of(schedule));
 
         String result = curtainService.getScheduleAction(roomId);
 
-        assertEquals("open", result);
+        assertEquals(action, result);
     }
 
     @Test

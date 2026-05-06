@@ -7,6 +7,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalTime;
+
 @Service
 public class CurtainService {
 
@@ -21,9 +23,11 @@ public class CurtainService {
     public void setSchedule(Long roomId, String time, String action) {
         CurtainScheduleEntity schedule = curtainScheduleRepository.findByRoomId(roomId)
                 .orElse(new CurtainScheduleEntity());
+
         schedule.setRoomId(roomId);
-        schedule.setScheduleTime(time);
+        schedule.setScheduleTime(LocalTime.parse(time));
         schedule.setScheduleAction(action);
+
         curtainScheduleRepository.save(schedule);
         log.info("Шторы в комнате {}: расписание установлено на {} - {}", roomId, time, action);
     }
@@ -31,7 +35,7 @@ public class CurtainService {
     @Transactional(readOnly = true)
     public String getScheduleTime(Long roomId) {
         return curtainScheduleRepository.findByRoomId(roomId)
-                .map(CurtainScheduleEntity::getScheduleTime)
+                .map(s -> s.getScheduleTime().toString())
                 .orElse(null);
     }
 
