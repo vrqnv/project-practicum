@@ -3,6 +3,7 @@ package ru.tbank.practicum.service;
 import static ru.tbank.practicum.util.AppConstants.DEFAULT_TEMPERATURE;
 import ru.tbank.practicum.entity.BatteryEntity;
 import ru.tbank.practicum.kafka.EventProducer;
+import ru.tbank.practicum.metrics.MetricsService;
 import ru.tbank.practicum.repository.BatteryRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,11 +16,14 @@ public class BatteryService {
     private static final Logger log = LoggerFactory.getLogger(BatteryService.class);
     private final BatteryRepository batteryRepository;
     private final EventProducer eventProducer;
+    private final MetricsService metricsService;
 
     public BatteryService(BatteryRepository batteryRepository,
-                          EventProducer eventProducer) {
+                          EventProducer eventProducer,
+                          MetricsService metricsService) {
         this.batteryRepository = batteryRepository;
         this.eventProducer = eventProducer;
+        this.metricsService = metricsService;
     }
 
     @Transactional
@@ -45,6 +49,7 @@ public class BatteryService {
         String event = String.format("{\"eventType\":\"TEMPERATURE_CHANGED\",\"roomId\":%d,\"temperature\":%d}",
                 roomId, value);
         eventProducer.send("temperature-events", event);
+        metricsService.incrementTemperatureChanges();
     }
 
     @Transactional(readOnly = true)
