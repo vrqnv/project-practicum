@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS battery (
+    id BIGSERIAL PRIMARY KEY,
+    room_id BIGINT NOT NULL REFERENCES room(id) ON DELETE CASCADE,
+    temperature INT NOT NULL
+);

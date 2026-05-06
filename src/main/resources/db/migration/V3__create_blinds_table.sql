@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS blinds (
+    id BIGSERIAL PRIMARY KEY,
+    room_id BIGINT NOT NULL REFERENCES room(id) ON DELETE CASCADE,
+    state VARCHAR(10) NOT NULL CHECK (state IN ('open', 'closed'))
+);
