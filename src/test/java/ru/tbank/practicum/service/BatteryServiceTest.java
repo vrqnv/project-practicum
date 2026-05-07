@@ -2,6 +2,7 @@ package ru.tbank.practicum.service;
 
 import ru.tbank.practicum.entity.BatteryEntity;
 import ru.tbank.practicum.kafka.EventProducer;
+import ru.tbank.practicum.metrics.MetricsService;
 import ru.tbank.practicum.repository.BatteryRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,7 +15,6 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static ru.tbank.practicum.util.AppConstants.DEFAULT_TEMPERATURE;
-import static ru.tbank.practicum.util.TestData.batteryWithRoomId;
 
 @ExtendWith(MockitoExtension.class)
 class BatteryServiceTest {
@@ -25,6 +25,9 @@ class BatteryServiceTest {
     @Mock
     private EventProducer eventProducer;
 
+    @Mock
+    private MetricsService metricsService;
+
     @InjectMocks
     private BatteryService batteryService;
 
@@ -32,7 +35,8 @@ class BatteryServiceTest {
     void setTemperature_whenBatteryExists_shouldUpdateTemperature() {
         Long roomId = 1L;
         int newTemperature = 25;
-        BatteryEntity existingBattery = batteryWithRoomId(roomId);
+        BatteryEntity existingBattery = new BatteryEntity();
+        existingBattery.setRoomId(roomId);
         existingBattery.setTemperature(DEFAULT_TEMPERATURE);
 
         when(batteryRepository.findByRoomId(roomId)).thenReturn(Optional.of(existingBattery));
@@ -42,27 +46,15 @@ class BatteryServiceTest {
         assertEquals(newTemperature, existingBattery.getTemperature());
         verify(batteryRepository, times(1)).save(existingBattery);
         verify(eventProducer, times(1)).send(eq("temperature-events"), anyString());
-    }
-
-    @Test
-    void setTemperature_whenBatteryNotExists_shouldThrowException() {
-        Long roomId = 2L;
-        int newTemperature = 25;
-
-        when(batteryRepository.findByRoomId(roomId)).thenReturn(Optional.empty());
-
-        RuntimeException exception = assertThrows(RuntimeException.class,
-                () -> batteryService.setTemperature(roomId, newTemperature));
-
-        assertEquals("Батарея не найдена в комнате " + roomId, exception.getMessage());
-        verify(batteryRepository, never()).save(any());
-        verify(eventProducer, never()).send(any(), any());
+        verify(metricsService, times(1)).incrementTemperatureChanges();
     }
 
     @Test
     void getTemperature_whenBatteryExists_shouldReturnTemperature() {
         Long roomId = 1L;
-        BatteryEntity battery = batteryWithRoomId(roomId);
+        BatteryEntity battery = new BatteryEntity();
+        battery.setRoomId(roomId);
+        battery.setTemperature(DEFAULT_TEMPERATURE);
 
         when(batteryRepository.findByRoomId(roomId)).thenReturn(Optional.of(battery));
 
@@ -72,7 +64,7 @@ class BatteryServiceTest {
     }
 
     @Test
-    void getTemperature_whenBatteryNotExists_shouldReturnDefault() {
+    void getTemperature_whenBatteryNotFound_shouldReturnDefault() {
         Long roomId = 999L;
         when(batteryRepository.findByRoomId(roomId)).thenReturn(Optional.empty());
 

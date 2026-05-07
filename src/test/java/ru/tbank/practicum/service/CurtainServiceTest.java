@@ -99,4 +99,14 @@ class CurtainServiceTest {
 
         assertNull(result);
     }
+
+    @Test
+    void getScheduleTime_whenNotFound_shouldReturnNull() {
+        Long roomId = 999L;
+        when(curtainScheduleRepository.findByRoomId(roomId)).thenReturn(Optional.empty());
+
+        String result = curtainService.getScheduleTime(roomId);
+
+        assertNull(result);
+    }
 }

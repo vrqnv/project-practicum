@@ -76,4 +76,14 @@ class BlindsServiceTest {
 
         assertEquals(DEFAULT_BLINDS_STATE, result);
     }
+
+    @Test
+    void getState_whenBlindsNotFound_shouldReturnDefault() {
+        Long roomId = 999L;
+        when(blindsRepository.findByRoomId(roomId)).thenReturn(Optional.empty());
+
+        String result = blindsService.getState(roomId);
+
+        assertEquals(DEFAULT_BLINDS_STATE, result);
+    }
 }
